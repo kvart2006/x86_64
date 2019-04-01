@@ -12,33 +12,51 @@ pub struct Cr0;
 bitflags! {
     /// Configuration flags of the Cr0 register.
     pub struct Cr0Flags: u64 {
+        /// Protection Enable
+        ///
         /// Enables protected mode.
-        const PROTECTED_MODE_ENABLE = 1 << 0;
-        /// Enables monitoring of the coprocessor, typical for x87 instructions.
+        const PE = 1 << 0;
+        /// Monitor Coprocessor.
         ///
         /// Controls together with the `TASK_SWITCHED` flag whether a `wait` or `fwait`
         /// instruction should cause a device-not-available exception.
-        const MONITOR_COPROCESSOR = 1 << 1;
-        /// Force all x87 and MMX instructions to cause an exception.
-        const EMULATE_COPROCESSOR = 1 << 2;
-        /// Automatically set to 1 on _hardware_ task switch.
+        const MP = 1 << 1;
+        /// Emulation
+        ///
+        /// Indicates that the processor does not have an internal or external x87 FPU when set; 
+        /// indicates an x87 FPU is present when clear..
+        const EM = 1 << 2;
+        /// Task Switched.
         ///
         /// This flags allows lazily saving x87/MMX/SSE instructions on hardware context switches.
-        const TASK_SWITCHED = 1 << 3;
+        const TS = 1 << 3;
+        /// Extension Type
+        ///
+        /// Reserved in the Pentium 4, Intel Xeon, P6 family, and Pentium processors. 
+        const ET = 1 << 4;
+        /// Numeric Error
         /// Enables the native error reporting mechanism for x87 FPU errors.
-        const NUMERIC_ERROR = 1 << 5;
+        const NE = 1 << 5;
         /// Controls whether supervisor-level writes to read-only pages are inhibited.
         ///
         /// When set, it is not possible to write to read-only pages from ring 0.
-        const WRITE_PROTECT = 1 << 16;
+        const WP = 1 << 16;
+        /// Alignment Mask
+        ///
         /// Enables automatic alignment checking.
-        const ALIGNMENT_MASK = 1 << 18;
+        const AM = 1 << 18;
+        /// Not Write-through
+        /// 
         /// Ignored. Used to control write-back/write-through cache strategy on older CPUs.
-        const NOT_WRITE_THROUGH = 1 << 29;
+        const NW = 1 << 29;
+        /// Cache Disable
+        /// 
         /// Disables internal caches (only for some cases).
-        const CACHE_DISABLE = 1 << 30;
+        const CD = 1 << 30;
+        /// Paging
+        /// 
         /// Enables page translation.
-        const PAGING = 1 << 31;
+        const PG = 1 << 31;
     }
 }
 
@@ -56,10 +74,15 @@ pub struct Cr3;
 bitflags! {
     /// Controls cache settings for the level 4 page table.
     pub struct Cr3Flags: u64 {
-        /// Use a writethrough cache policy for the P4 table (else a writeback policy is used).
-        const PAGE_LEVEL_WRITETHROUGH = 1 << 3;
-        /// Disable caching for the P4 table.
-        const PAGE_LEVEL_CACHE_DISABLE = 1 << 4;
+        /// Page-level Cache Disable
+        ///
+        /// Use a write through cache policy for the P4 table (else a writeback policy is used).
+        const PCD = 1 << 3;
+        /// Page-level Write-Through
+        /// 
+        /// Controls the memory type used to access the first paging structure of the current 
+        /// paging-structure hierarchy.
+        const PWT = 1 << 4;
     }
 }
 /// CR4
@@ -71,72 +94,92 @@ pub struct Cr4;
 bitflags! {
     /// Configuration flags of the Cr0 register.
     pub struct Cr4Flags: u64 {
-        /// VME
+        /// Virtual-8086 Mode Extensions
+        ///
         /// If set, enables support for the virtual interrupt flag (VIF) in virtual-8086 mode.
-        const VIRTUAL_8086_MODE_EXTENSIONS = 1 << 0;
-        /// PVI 
+        const VME = 1 << 0;
+        /// Protected-Mode Virtual Interrupts
+        ///
         /// If set, enables support for the virtual interrupt flag (VIF) in protected mode.
-        const PROTECTED_MODE_VIRTUAL_INTERRUPTS = 1 << 1;
-        /// TSD
+        const PVI = 1 << 1;
+        /// Time Stamp Disable
+        ///
         /// If set, RDTSC instruction can only be executed when in ring 0, 
         /// otherwise RDTSC can be used at any privilege level.
-        const TIME_STAMP_DISABLE = 1 << 2;
-        /// DE
+        const TSD = 1 << 2;
+        /// Debugging Extensions
+        ///
         /// If set, enables debug register based breaks on I/O space access.
-        const DEBUGGING_EXTENSIONS = 1 << 3;
-        /// PSE
+        const DE = 1 << 3;
+        /// Page Size Extensions
+        ///
         /// If unset, page size is 4 KiB, else page size is increased to 4 MiB
         /// If PAE is enabled or the processor is in x86-64 long mode this bit is ignored.
-        const PAGE_SIZE_EXTENSIONS = 1 << 4;
-        /// PAE
+        const PSE = 1 << 4;
+        /// Physical Address Extension
+        ///
         /// If set, changes page table layout to translate 32-bit virtual addresses into 
         /// extended 36-bit physical addresses.
-        const PHYSICAL_ADDRESS_EXTENSIONS = 1 << 5;
-        /// MCE
+        const PAE = 1 << 5;
+        /// Machine-Check Enable
+        ///
         /// If set, enables machine check interrupts to occur.
-        const MACHINE_CHECK_EXTENSIONS = 1 << 6;
-        /// PGE
+        const MCE = 1 << 6;
+        /// Page Global Enable
+        ///
         /// If set, address translations (PDE or PTE records) may be shared between address spaces.
-        const PAGE_GLOBAL_ENABLED = 1 << 7;
-        /// PCE
+        const PGE = 1 << 7;
+        /// Performance-Monitoring Counter Enable
+        ///
         /// If set, RDPMC can be executed at any privilege level, else RDPMC can only be used in ring 0.
-        const PERFORMANCE_MONITORING_COUNTER_ENABLE = 1 << 8;
-        /// OSFXSR
+        const PCE = 1 << 8;
+        /// Operating System Support for FXSAVE and FXRSTOR instructions
+        ///
         /// If set, enables Streaming SIMD Extensions (SSE) instructions and fast FPU save & restore.
-        const OS_SUPPORT_FOR_FXSAVE_AND_FXRSTOR_INSTRUCTIONS = 1 << 9;
-        /// OSXMMEXCPT
+        const OSFXSR = 1 << 9;
+        /// Operating System Support for Unmasked SIMD Floating-Point Exceptions
+        ///
         /// If set, enables unmasked SSE exceptions.
-        const OS_SUPPORT_FOR_UNMASKED_SIMD_FLOATING_POINT_EXCEPTIONS = 1 << 10;
-        /// UMIP
+        const OSXMMEXCPT = 1 << 10;
+        /// User-Mode Instruction Prevention
+        ///
         /// If set, the SGDT, SIDT, SLDT, SMSW and STR instructions cannot be executed if CPL > 0.
-        const USER_MODE_INSTRUCTION_PREVENTION = 1 << 11;
+        const UMIP = 1 << 11;
         /// LA57
+        ///
         /// If set, enables 5-Level Paging.
         const LA57 = 1 << 12;
-        /// VMXE
+        /// VMX-Enable Bit
         ///
-        const VIRTUAL_MACHINE_EXTENSIONS_ENABLE = 1 << 13;
-        /// SMXE
+        /// Enables VMX operation when set.
+        const VMXE = 1 << 13;
+        /// SMX-Enable Bit
         ///
-        const SAFER_MODE_EXTENSIONS_ENABLED = 1 << 14;
-        /// FSGSBASE
+        /// Enables SMX operation when set.
+        const SMXE = 1 << 14;
+        /// FSGSBASE-Enable Bit
         ///
+        /// Enables the instructions RDFSBASE, RDGSBASE, WRFSBASE, and WRGSBASE.
         const FSGSBASE = 1 << 16;
-        /// PCIDE
-        /// If set, enables process-context identifiers (PCIDs).
-        const PCID_ENABLE = 1 << 17;
-        /// OSXSAVE
+        /// PCID-Enable Bit
         ///
-        const XSAVE_AND_PROCESSOR_EXTENDED_STATES_ENABLE = 1 << 18;
-        /// SMEP
+        /// If set, enables process-context identifiers (PCIDs).
+        const PCIDE = 1 << 17;
+        /// XSAVE and Processor Extended States-Enable Bit
+        ///
+        const OSXSAVE = 1 << 18;
+        /// SMEP-Enable Bit
+        ///
         /// If set, execution of code in a higher ring generates a fault.
-        const SUPERVISOR_MODE_EXECUTION_PROTECTION_ENABLE = 1 << 20;
-        /// SMAP
+        const SMEP = 1 << 20;
+        /// SMAP-Enable Bit
+        ///
         /// If set, access of data in a higher ring generates a fault.
-        const SUPERVISOR_MODE_ACCESS_PREVENTION_ENABLE = 1 << 21;
-        /// PKE
+        const SMAP = 1 << 21;
+        /// Protection-Key-Enable Bit
         /// 
-        const PROTECTION_KEY_ENABLE = 1 << 22;
+        /// Enables 4-level paging to associate each linear address with a protection key.
+        const PKE = 1 << 22;
     }
 }
 
