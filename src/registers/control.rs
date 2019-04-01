@@ -65,7 +65,6 @@ bitflags! {
 /// When page fault occurs, the CPU sets this register to the accessed address.
 #[derive(Debug)]
 pub struct Cr2;
-
 /// CR3
 /// Contains the physical address of the level 4 page table.
 #[derive(Debug)]
