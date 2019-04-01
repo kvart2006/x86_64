@@ -4,7 +4,8 @@ pub use super::model_specific::{Efer, EferFlags};
 
 use bitflags::bitflags;
 
-/// Various control flags modifying the basic operation of the CPU.
+/// CR0
+/// Contains system control flags that control operating mode and states of the CPU.
 #[derive(Debug)]
 pub struct Cr0;
 
@@ -41,12 +42,13 @@ bitflags! {
     }
 }
 
-/// Contains the Page Fault Linear Address (PFLA).
-///
+/// CR2
+/// Contains the page-fault linear address (PFLA) (the linear address that caused a page fault).
 /// When page fault occurs, the CPU sets this register to the accessed address.
 #[derive(Debug)]
 pub struct Cr2;
 
+/// CR3
 /// Contains the physical address of the level 4 page table.
 #[derive(Debug)]
 pub struct Cr3;
@@ -60,9 +62,83 @@ bitflags! {
         const PAGE_LEVEL_CACHE_DISABLE = 1 << 4;
     }
 }
-
+/// CR4
+/// Contains a group of flags that enable several architectural extensions, 
+/// and indicate operating system or executive support for specific processor capabilities.
 #[derive(Debug)]
 pub struct Cr4;
+
+bitflags! {
+    /// Configuration flags of the Cr0 register.
+    pub struct Cr4Flags: u64 {
+        /// VME
+        /// If set, enables support for the virtual interrupt flag (VIF) in virtual-8086 mode.
+        const VIRTUAL_8086_MODE_EXTENSIONS = 1 << 0;
+        /// PVI 
+        /// If set, enables support for the virtual interrupt flag (VIF) in protected mode.
+        const PROTECTED_MODE_VIRTUAL_INTERRUPTS = 1 << 1;
+        /// TSD
+        /// If set, RDTSC instruction can only be executed when in ring 0, 
+        /// otherwise RDTSC can be used at any privilege level.
+        const TIME_STAMP_DISABLE = 1 << 2;
+        /// DE
+        /// If set, enables debug register based breaks on I/O space access.
+        const DEBUGGING_EXTENSIONS = 1 << 3;
+        /// PSE
+        /// If unset, page size is 4 KiB, else page size is increased to 4 MiB
+        /// If PAE is enabled or the processor is in x86-64 long mode this bit is ignored.
+        const PAGE_SIZE_EXTENSIONS = 1 << 4;
+        /// PAE
+        /// If set, changes page table layout to translate 32-bit virtual addresses into 
+        /// extended 36-bit physical addresses.
+        const PHYSICAL_ADDRESS_EXTENSIONS = 1 << 5;
+        /// MCE
+        /// If set, enables machine check interrupts to occur.
+        const MACHINE_CHECK_EXTENSIONS = 1 << 6;
+        /// PGE
+        /// If set, address translations (PDE or PTE records) may be shared between address spaces.
+        const PAGE_GLOBAL_ENABLED = 1 << 7;
+        /// PCE
+        /// If set, RDPMC can be executed at any privilege level, else RDPMC can only be used in ring 0.
+        const PERFORMANCE_MONITORING_COUNTER_ENABLE = 1 << 8;
+        /// OSFXSR
+        /// If set, enables Streaming SIMD Extensions (SSE) instructions and fast FPU save & restore.
+        const OS_SUPPORT_FOR_FXSAVE_AND_FXRSTOR_INSTRUCTIONS = 1 << 9;
+        /// OSXMMEXCPT
+        /// If set, enables unmasked SSE exceptions.
+        const OS_SUPPORT_FOR_UNMASKED_SIMD_FLOATING_POINT_EXCEPTIONS = 1 << 10;
+        /// UMIP
+        /// If set, the SGDT, SIDT, SLDT, SMSW and STR instructions cannot be executed if CPL > 0.
+        const USER_MODE_INSTRUCTION_PREVENTION = 1 << 11;
+        /// LA57
+        /// If set, enables 5-Level Paging.
+        const LA57 = 1 << 12;
+        /// VMXE
+        ///
+        const VIRTUAL_MACHINE_EXTENSIONS_ENABLE = 1 << 13;
+        /// SMXE
+        ///
+        const SAFER_MODE_EXTENSIONS_ENABLED = 1 << 14;
+        /// FSGSBASE
+        ///
+        const FSGSBASE = 1 << 16;
+        /// PCIDE
+        /// If set, enables process-context identifiers (PCIDs).
+        const PCID_ENABLE = 1 << 17;
+        /// OSXSAVE
+        ///
+        const XSAVE_AND_PROCESSOR_EXTENDED_STATES_ENABLE = 1 << 18;
+        /// SMEP
+        /// If set, execution of code in a higher ring generates a fault.
+        const SUPERVISOR_MODE_EXECUTION_PROTECTION_ENABLE = 1 << 20;
+        /// SMAP
+        /// If set, access of data in a higher ring generates a fault.
+        const SUPERVISOR_MODE_ACCESS_PREVENTION_ENABLE = 1 << 21;
+        /// PKE
+        /// 
+        const PROTECTION_KEY_ENABLE = 1 << 22;
+    }
+}
 
 #[cfg(target_arch = "x86_64")]
 mod x86_64 {
