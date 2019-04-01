@@ -61,6 +61,9 @@ bitflags! {
     }
 }
 
+#[derive(Debug)]
+pub struct Cr4;
+
 #[cfg(target_arch = "x86_64")]
 mod x86_64 {
     use super::*;
@@ -150,5 +153,9 @@ mod x86_64 {
             let value = addr.as_u64() | flags.bits();
             asm!("mov $0, %cr3" :: "r" (value) : "memory")
         }
+    }
+
+    impl Cr4 {
+
     }
 }
