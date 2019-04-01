@@ -9,5 +9,5 @@
 Support for x86_64 specific instructions (e.g. TLB flush), registers (e.g. control registers), and structures (e.g. page tables).
 
 <div align="center">
-        <img width="100%" src="mmregs.jpg" alt="mm_regs" title="mm_regs"></img>
+        <img width="75%" src="mmregs.jpg" alt="mm_regs" title="mm_regs"></img>
 </div>
