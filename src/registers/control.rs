@@ -232,6 +232,51 @@ mod x86_64 {
     }
 
     impl Cr4 {
+        /// Read the current set of CR0 flags.
+        pub fn read() -> Cr4Flags {
+            Cr4Flags::from_bits_truncate(Self::read_raw())
+        }
 
+        /// Read the current raw CR0 value.
+        pub fn read_raw() -> u64 {
+            let value: u64;
+            unsafe {
+                asm!("mov %cr4, $0" : "=r" (value));
+            }
+            value
+        }
+
+        /// Write CR4 flags.
+        ///
+        /// Preserves the value of reserved fields. Unsafe because it's possible to violate memory
+        /// safety by e.g. disabling paging.
+        pub unsafe fn write(flags: Cr4Flags) {
+            let old_value = Self::read_raw();
+            let reserved = old_value & !(Cr0Flags::all().bits());
+            let new_value = reserved | flags.bits();
+
+            Self::write_raw(new_value);
+        }
+
+        /// Write raw CR4 flags.
+        ///
+        /// Does _not_ preserve any values, including reserved fields. Unsafe because it's possible to violate memory
+        /// safety by e.g. disabling paging.
+        pub unsafe fn write_raw(value: u64) {
+            asm!("mov $0, %cr4" :: "r" (value) : "memory")
+        }
+
+        /// Updates CR4 flags.
+        ///
+        /// Preserves the value of reserved fields. Unsafe because it's possible to violate memory
+        /// safety by e.g. disabling paging.
+        pub unsafe fn update<F>(f: F)
+        where
+            F: FnOnce(&mut Cr4Flags),
+        {
+            let mut flags = Self::read();
+            f(&mut flags);
+            Self::write(flags);
+        }
     }
 }
