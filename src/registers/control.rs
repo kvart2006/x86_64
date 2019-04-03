@@ -87,6 +87,28 @@ bitflags! {
 /// CR4
 /// Contains a group of flags that enable several architectural extensions, 
 /// and indicate operating system or executive support for specific processor capabilities.
+/*
+pub const X86_CR4_VME: u32 = 1;
+pub const X86_CR4_PVI: u32 = 2;
+pub const X86_CR4_TSD: u32 = 4;
+pub const X86_CR4_DE: u32 = 8;
+pub const X86_CR4_PSE: u32 = 16;
+pub const X86_CR4_PAE: u32 = 32;
+pub const X86_CR4_MCE: u32 = 64;
+pub const X86_CR4_PGE: u32 = 128;
+pub const X86_CR4_PCE: u32 = 256;
+pub const X86_CR4_OSFXSR: u32 = 512;
+pub const X86_CR4_OSXMMEXCPT: u32 = 1024;
+pub const X86_CR4_UMIP: u32 = 2048;
+pub const X86_CR4_VMXE: u32 = 8192;
+pub const X86_CR4_SMXE: u32 = 16384;
+pub const X86_CR4_FSGSBASE: u32 = 65536;
+pub const X86_CR4_PCIDE: u32 = 131072;
+pub const X86_CR4_OSXSAVE: u32 = 262144;
+pub const X86_CR4_SMEP: u32 = 1048576;
+pub const X86_CR4_SMAP: u32 = 2097152;
+pub const X86_CR4_PKE: u32 = 4194304;
+*/
 #[derive(Debug)]
 pub struct Cr4;
 
@@ -95,16 +117,24 @@ bitflags! {
     pub struct Cr4Flags: u64 {
         /// Virtual-8086 Mode Extensions
         ///
+        /// Enables interrupt- and exception-handling extensions in virtual-8086 mode when set; 
+        /// sables the extensions when clear. Use of the virtual mode extensions can improve 
+        /// the performance of virtual-8086 applications by eliminating the overhead of calling the virtual-
+        /// 8086 monitor to handle interrupts and exceptions that occur while executing an 8086 program and,
+        /// instead, redirecting the interrupts and exceptions back to the 8086 program’s handlers. It also provides
+        /// hardware support for a virtual interrupt flag (VIF) to improve reliability of running 8086 programs in multi-
+        /// tasking and multiple-processor environments.
         /// If set, enables support for the virtual interrupt flag (VIF) in virtual-8086 mode.
         const VME = 1 << 0;
         /// Protected-Mode Virtual Interrupts
         ///
-        /// If set, enables support for the virtual interrupt flag (VIF) in protected mode.
+        /// Enables hardware support for a virtual interrupt flag (VIF) in protected mode when set; 
+        /// disables the VIF flag in protected mode when clear.
         const PVI = 1 << 1;
         /// Time Stamp Disable
         ///
-        /// If set, RDTSC instruction can only be executed when in ring 0, 
-        /// otherwise RDTSC can be used at any privilege level.
+        /// Restricts the execution of the RDTSC instruction to procedures running at privilege 
+        /// level 0 when set; allows RDTSC instruction to be executed at any privilege level when clear.
         const TSD = 1 << 2;
         /// Debugging Extensions
         ///
@@ -112,8 +142,9 @@ bitflags! {
         const DE = 1 << 3;
         /// Page Size Extensions
         ///
-        /// If unset, page size is 4 KiB, else page size is increased to 4 MiB
-        /// If PAE is enabled or the processor is in x86-64 long mode this bit is ignored.
+        /// References to debug registers DR4 and DR5 cause an undefined opcode (#UD) exception 
+        /// to be generated when set; when clear, processor aliases references to registers DR4 and 
+        /// DR5 for compatibility with software written to run on earlier IA-32 processors.
         const PSE = 1 << 4;
         /// Physical Address Extension
         ///
@@ -122,15 +153,25 @@ bitflags! {
         const PAE = 1 << 5;
         /// Machine-Check Enable
         ///
-        /// If set, enables machine check interrupts to occur.
+        /// When set, enables paging to produce physical addresses with more than 32 bits. 
+        /// When clear, restricts physical addresses to 32 bits. PAE must be set before entering 
+        /// IA-32e mode.
         const MCE = 1 << 6;
         /// Page Global Enable
         ///
-        /// If set, address translations (PDE or PTE records) may be shared between address spaces.
+        /// Enables the global page feature when set; disables the global page feature when clear. 
+        /// The global page feature allows frequently used or shared pages to be marked as global 
+        /// to all users (done with the global flag, bit 8, in a page-directory or page-table entry). 
+        /// Global pages are not flushed from the translation-lookaside buffer (TLB) on a task switch 
+        /// or a write to register CR3.
+        /// When enabling the global page feature, paging must be enabled (by setting the PG flag in control register CR0) 
+        /// before the PGE flag is set. Reversing this sequence may affect program correctness, and processor
+        /// performance will be impacted.
         const PGE = 1 << 7;
         /// Performance-Monitoring Counter Enable
         ///
-        /// If set, RDPMC can be executed at any privilege level, else RDPMC can only be used in ring 0.
+        /// Enables execution of the RDPMC instruction for programs or procedures running at any 
+        /// protection level when set; RDPMC instruction can be executed only at protection level 0 when clear.
         const PCE = 1 << 8;
         /// Operating System Support for FXSAVE and FXRSTOR instructions
         ///
@@ -142,7 +183,8 @@ bitflags! {
         const OSXMMEXCPT = 1 << 10;
         /// User-Mode Instruction Prevention
         ///
-        /// If set, the SGDT, SIDT, SLDT, SMSW and STR instructions cannot be executed if CPL > 0.
+        /// When set, the following instructions cannot be executed if CPL > 0: 
+        /// SGDT, SIDT, SLDT, SMSW, and STR
         const UMIP = 1 << 11;
         /// LA57
         ///
@@ -162,7 +204,7 @@ bitflags! {
         const FSGSBASE = 1 << 16;
         /// PCID-Enable Bit
         ///
-        /// If set, enables process-context identifiers (PCIDs).
+        /// Enables the instructions RDFSBASE, RDGSBASE, WRFSBASE, and WRGSBASE.
         const PCIDE = 1 << 17;
         /// XSAVE and Processor Extended States-Enable Bit
         ///
@@ -177,7 +219,10 @@ bitflags! {
         const SMAP = 1 << 21;
         /// Protection-Key-Enable Bit
         /// 
-        /// Enables 4-level paging to associate each linear address with a protection key.
+        /// Enables 4-level paging to associate each linear address with a protection key. 
+        /// The PKRU register specifies, for each protection key, whether user-mode linear
+        /// addresses with that protection key can be read or written. This bit also enables 
+        /// access to the PKRU register using the RDPKRU and WRPKRU instructions.
         const PKE = 1 << 22;
     }
 }
